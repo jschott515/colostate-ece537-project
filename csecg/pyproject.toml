@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csecg"
+version = "0.0.0"
+description = "ECG Compressed Sensing - ECE537 Final Project"
+requires-python = ">=3.14"
+authors = [
+    {name = "Jordan Schott", email = "jschott515@gmail.com"},
+]
+dependencies = [
+    "flake8>=7.3",
+    "isort>=7.0",
+]
+
+[tool.flake8]
+max-line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
