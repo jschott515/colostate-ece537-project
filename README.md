@@ -6,7 +6,8 @@ This directory contains python sources relevant to the implemntation of Compress
 From the `csecg` directory:
 ```
 python -m pip install -e .
-python -m csecg.main
+python scripts\download_dataset.py
+python scripts\main.py
 ```
 
 ### Paper
