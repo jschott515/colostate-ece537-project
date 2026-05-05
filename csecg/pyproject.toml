@@ -13,6 +13,9 @@ authors = [
 dependencies = [
     "flake8>=7.3",
     "isort>=7.0",
+    "wfdb>=4.3",
+    "numpy>=2.4",
+    "matplotlib>=3.10",
 ]
 
 [tool.flake8]
