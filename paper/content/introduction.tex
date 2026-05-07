@@ -1,0 +1,21 @@
+\section{Introduction}
+
+Compressed sensing is a well-established technique for recovering signals from a small number of measurements by leveraging sparsity during reconstruction.
+Traditionally, an \(M \times N\) sensing matrix \(\Phi\) is multiplied with the \(N \times L\) signal matrix \(X\) to yield an \(M \times L\) compressed data matrix \(Y\).
+Thus, only \(M\) samples per \(L\) channels are required to represent the original data, yielding a compression ratio CR of:
+\[ CR = \frac{N}{M} \]
+With knowledge of the compressed data and the sensing matrix, the receiver can then construct a minimization problem to solve for the original data.
+Assuming the expected data matrix is sparse, \(\ell_1\)-norm minimization is able to reconstruct highly compressed signals with exceptional accuracy [FIXME].
+\newline
+\par
+Early literature extends this approach to single-lead electrocardiograms (ECG). Although these signals are not inherently sparse in the time domain, Mishra et al. exploit sparsity in the wavelet domain by considering the data as the product of a wavelet basis and a sparse coefficient vector [FIXME].
+Rather than directly solving for the uncompressed signal, the coefficient vector can be solved for and then separately multiplied by the wavelet basis to recover the ECG.
+This presents the first major consideration: ECGs are not perfectly sparse in the wavelet domain, and thus the basis must be carefully selected to maximize sparsity.
+\newline
+\par
+Later work further extends compressed sensing to multi-lead ECGs, which is the main focus of this paper.
+While many of the same principles apply, decoding the compressed data becomes notably more complex.
+Considering that each column of the data matrix now represents a lead of the ECG, it is observed that \(\ell_1\)-norm minimization is no longer suited for recovering the coefficient matrix.
+Although this still solves for a sparse coefficient matrix, the result is independently sparse.
+Given that the signal for each ECG lead is highly correlated, it is shown that far superior results can be achieved by optimizing for row-sparse solutions.
+In this paper, we define a software implementation for compressed sensing of 12-lead ECG signals and investigate established techniques for optimally recovering the uncompressed source.

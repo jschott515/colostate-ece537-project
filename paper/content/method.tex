@@ -1,0 +1,126 @@
+\section{Method}
+
+12-lead ECG data was first obtained from the Physikalisch-Technische Bundesanstalt (PTB) Diagnostic ECG Database [FIXME].
+Each record was sampled at 1 kHz, and a duration of 1 second (\(N=1000\)) was selected for the sake of brevity.
+\newline
+\par
+To produce the compressed representation of the ECG, the sensing matrix \(\Phi\) was constructed.
+The exact details of this matrix varies by implementation, but this paper follows the implementation described by Daponte et al. [FIXME].
+Here, the authors propose that \(\Phi\) be composed of a combination of dominant leads.
+Although less practical, this faired notably better than alternate methods, such an iid Gaussian sensing matrix [FIXME].
+For the given ECG frame, a reference was constructed by taking the root mean square of leads II and aVF, \(x_0\), and then centering the signal subject to the following equations.
+
+\[ x_0 = \sqrt{\frac{1}{2}(x_{II}^2 + x_{aVF}^2)} \]
+\[ x_p = | x_0 - \bar{x}_0 | \]
+
+A binary mask was applied to \(x_p\) with a threshold of 60\% to produce the vector \(p\).
+This vector was then used to construct \(\Phi\) as follows:
+\[
+\Phi = \begin{bmatrix}
+p(1) & p(2) & \cdots & p(N) \\
+p(N-CR+1) & p(N-CR+2) & \cdots & p(N-CR) \\
+\vdots & \vdots & \ddots & \vdots \\
+p(CR+1) & p(CR+2) & \cdots & p(CR)
+\end{bmatrix}.
+\]
+\newline
+\noindent
+The Python code for constructing the sensing matrix is shown below.
+
+\begin{lstlisting}[language=Python, caption=Sensing Matrix Construction]
+def sensing_matrix(ecg: Ecg, compression_ratio: int):
+    # Construct a reference signal from Leads II, aVF
+    x0 = numpy.sqrt(0.5 * (ecg.get('ii') ** 2 + ecg.get('avf') ** 2))
+
+    # Center the reference signal and apply thresholding
+    xp = numpy.abs(x0 - numpy.mean(x0))
+    p = (xp >= numpy.percentile(xp, 60)).astype(int).flatten()
+
+    # Construct the sensing matrix
+    compressed_len = ecg.length // compression_ratio
+    phi = numpy.zeros((compressed_len, ecg.length), dtype=int)
+    for i in range(compressed_len):
+        phi[i, :] = numpy.roll(p, -i * compression_ratio)
+    return phi
+\end{lstlisting}
+
+\par
+Applying the compression is now trivial, as the compressed data matrix \(Y\) is simply the product of the sensing matrix and ECG data.
+\[ Y = \Phi X \]
+
+At the receiver, recovery of the original ECG source can begin.
+First, a wavelet basis \(\Psi\) must be constructed such that
+\[ X = \Psi C \]
+where \(C\) is a sparse matrix of coefficients.
+Again, this paper follows the implementation described by Daponte et al. [FIXME], selecting the following basis matrix
+\[ \Psi = [\Psi', u]\]
+where \(u\) is an \(N\)-length column \(\frac{1}{\sqrt{N}} \cdot [1,... ,1]^T\) and \(\Psi'\) contains columns of mexican hat wavelets in the form:
+\[ \psi(a,b) = \frac{2}{\sqrt{3a}\,\pi^{1/4}} \cdot \left[1 - \left(\frac{n - b}{a}\right)^2 \right] \cdot e^{-\frac{1}{2}\left(\frac{n - b}{a}\right)^2}, \]
+\noindent
+The Python code for constructing the wavelet basis matrix is shown below.
+
+\begin{lstlisting}[language=Python, caption=Wavelet Basis Matrix Construction]
+def mexican_hat(length: int, a: float, b: float):
+    n = numpy.arange(length)
+    # Construct wavelet
+    scalar = (2 / (numpy.sqrt(3 * a) * (numpy.pi ** 0.25)))
+    n_min_b_ovr_a_sq = ((n - b) / a) ** 2
+    wavelet = scalar * (1 - n_min_b_ovr_a_sq) * numpy.exp(-0.5 * n_min_b_ovr_a_sq)
+    return wavelet
+
+def basis_matrix(length: int):
+    cols = []
+    # Construt wavelet dictionary
+    for m in range(1, int(numpy.floor(numpy.log2(length))) + 1):
+        a = 2 ** m
+        for k in range((length - 1) // a + 1):
+            b = k * a
+            psi = mexican_hat(length, a, b)
+            cols.append(psi)
+    # Pad with an additional column
+    u = (1 / numpy.sqrt(length)) * numpy.ones(length)
+    return numpy.column_stack(cols)
+\end{lstlisting}
+
+Given the above information, a sparse minimization problem can now be designed to solve for the coefficient matrix \(C\) with cost function \(J\) [FIXME]:
+\[ \hat{C} = \arg\min_{C}\left\|Y - \Phi \Psi C\right\|_F^2 + \lambda J \]
+\noindent
+To demonstrate the trade-offs and effectiveness of each algorithm for recovering the ECG signal, the following cost functions are investigated:
+\newline
+\indent \(\ell_1\)-norm (LASSO) [FIXME]:
+\[ J = \left\| C \right\|_1 \]
+\indent \(\ell_{2,1}\)-norm (Group LASSO) [FIXME]:
+\[ J = \left\| C \right\|_2,1 = \sum_{n=1}^N \left\| c_{n\ \cdot} \right\|_2 \]
+\indent \(\ell_{2,p}\)-norm (M-FOCUSS) [FIXME]:
+\[ J = \sum_{n=1}^N \left\| c_{n\ \cdot} \right\|_2^p,\ p \in [0,1] \]
+\noindent
+The Python code for each implementation is shown below:
+
+\begin{lstlisting}[language=Python, caption=Implementations for Reconstruction Algorithms]
+# LASSO / Group LASSO are convex optimization problems, which can be solved with the cvxpy library.
+
+def lasso_solver(compressed_data, phi, psi, regularization):
+    c_var = cvxpy.Variable((psi.shape[1], compressed_data.shape[1]))
+    cost_func = regularization * cvxpy.norm(c_var, 1)
+    prob = cvxpy.Problem(
+        cvxpy.Minimize(
+            cvxpy.norm(compressed_data - (phi @ psi @ c_var), "fro") ** 2 + cost_func
+        )
+    )
+    prob.solve(solver=cvxpy.SCS)
+    return c_var.value
+
+def group_lasso_solver(compressed_data, phi, psi, regularization):
+    c_var = cvxpy.Variable((psi.shape[1], compressed_data.shape[1]))
+    cost_func = regularization * cvxpy.sum(cvxpy.norm(c_var, 2, axis=1))
+    prob = cvxpy.Problem(
+        cvxpy.Minimize(
+            cvxpy.norm(compressed_data - (phi @ psi @ c_var), "fro") ** 2 + cost_func
+        )
+    )
+    prob.solve(solver=cvxpy.SCS)
+    return c_var.value
+\end{lstlisting}
+
+Finally, the uncompressed ECG can be reconstructed by multiplying the wavelet basis with the recovered coefficient matrix:
+\[ \hat{X} = \Psi \hat{C} \]
