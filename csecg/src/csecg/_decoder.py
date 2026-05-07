@@ -3,6 +3,16 @@ import numpy
 import numpy.typing
 
 
+def prd(
+    x: numpy.typing.NDArray[numpy.float64],
+    x_hat: numpy.typing.NDArray[numpy.float64],
+) -> float:
+    """
+    Calculate PRD for a given lead.
+    https://pmc.ncbi.nlm.nih.gov/articles/PMC8587449 Equation 16
+    """
+    return (numpy.linalg.norm(x - x_hat, 2) / numpy.linalg.norm(x, 2)) * 100
+
 def lasso_solver(
     compressed_data: numpy.typing.NDArray[numpy.float64],
     phi: numpy.typing.NDArray[numpy.float64],

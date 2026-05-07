@@ -7,7 +7,7 @@ From the `csecg` directory:
 ```
 python -m pip install -e .
 python scripts\download_dataset.py
-python scripts\main.py
+python scripts\demo.py
 ```
 
 ### Paper
