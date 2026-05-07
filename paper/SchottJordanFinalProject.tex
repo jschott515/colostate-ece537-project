@@ -1,8 +1,13 @@
-\documentclass{report}
+\documentclass{article}
 \usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage[numbers]{natbib}
+
+\graphicspath{{figures/}}
 
 \lstset{
     backgroundcolor=\color{gray!10},
@@ -32,5 +37,17 @@
 \input{content/learning_objectives}
 \newpage
 \input{content/method}
+\newpage
+\input{content/results}
+\newpage
+\input{content/future_work}
+
+\section*{Code Availability}
+The source code used in this paper is publicly available at:
+\newline
+\url{https://github.com/jschott515/colostate-ece537-project}
+
+\newpage
+\input{content/references}
 
 \end{document}

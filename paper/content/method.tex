@@ -1,13 +1,13 @@
 \section{Method}
 
-12-lead ECG data was first obtained from the Physikalisch-Technische Bundesanstalt (PTB) Diagnostic ECG Database [FIXME].
+12-lead ECG data was first obtained from the Physikalisch-Technische Bundesanstalt (PTB) Diagnostic ECG Database \citep{physionet}.
 Each record was sampled at 1 kHz, and a duration of 1 second (\(N=1000\)) was selected for the sake of brevity.
 \newline
 \par
 To produce the compressed representation of the ECG, the sensing matrix \(\Phi\) was constructed.
-The exact details of this matrix varies by implementation, but this paper follows the implementation described by Daponte et al. [FIXME].
+The exact details of this matrix varies by implementation, but this paper follows the implementation described by Daponte et al. \citep{daponte2021}.
 Here, the authors propose that \(\Phi\) be composed of a combination of dominant leads.
-Although less practical, this faired notably better than alternate methods, such an iid Gaussian sensing matrix [FIXME].
+Although less practical, this faired notably better than alternate methods, such an iid Gaussian sensing matrix \citep{mishra2012}.
 For the given ECG frame, a reference was constructed by taking the root mean square of leads II and aVF, \(x_0\), and then centering the signal subject to the following equations.
 
 \[ x_0 = \sqrt{\frac{1}{2}(x_{II}^2 + x_{aVF}^2)} \]
@@ -52,7 +52,8 @@ At the receiver, recovery of the original ECG source can begin.
 First, a wavelet basis \(\Psi\) must be constructed such that
 \[ X = \Psi C \]
 where \(C\) is a sparse matrix of coefficients.
-Again, this paper follows the implementation described by Daponte et al. [FIXME], selecting the following basis matrix
+Proper selection of the wavelet type is crucial in ensuring sparsity in the matrix \(C\) - early literature suggests biorthogonal wavelets to yield the bests results \citep{mishra2012}, but modern implementations tend to favor forms of a mexican hat wavelet \citep{daponte2021}.
+Again, this paper follows the implementation described by Daponte et al., selecting the following basis matrix
 \[ \Psi = [\Psi', u]\]
 where \(u\) is an \(N\)-length column \(\frac{1}{\sqrt{N}} \cdot [1,... ,1]^T\) and \(\Psi'\) contains columns of mexican hat wavelets in the form:
 \[ \psi(a,b) = \frac{2}{\sqrt{3a}\,\pi^{1/4}} \cdot \left[1 - \left(\frac{n - b}{a}\right)^2 \right] \cdot e^{-\frac{1}{2}\left(\frac{n - b}{a}\right)^2}, \]
@@ -82,16 +83,16 @@ def basis_matrix(length: int):
     return numpy.column_stack(cols)
 \end{lstlisting}
 
-Given the above information, a sparse minimization problem can now be designed to solve for the coefficient matrix \(C\) with cost function \(J\) [FIXME]:
+Given the above information, a sparse minimization problem can now be designed to solve for the coefficient matrix \(C\) with cost function \(J\) \citep{daponte2021}:
 \[ \hat{C} = \arg\min_{C}\left\|Y - \Phi \Psi C\right\|_F^2 + \lambda J \]
 \noindent
 To demonstrate the trade-offs and effectiveness of each algorithm for recovering the ECG signal, the following cost functions are investigated:
 \newline
-\indent \(\ell_1\)-norm (LASSO) [FIXME]:
+\indent \(\ell_1\)-norm (LASSO) \citep{yuan2006}:
 \[ J = \left\| C \right\|_1 \]
-\indent \(\ell_{2,1}\)-norm (Group LASSO) [FIXME]:
+\indent \(\ell_{2,1}\)-norm (Group LASSO) \citep{yuan2006}:
 \[ J = \left\| C \right\|_2,1 = \sum_{n=1}^N \left\| c_{n\ \cdot} \right\|_2 \]
-\indent \(\ell_{2,p}\)-norm (M-FOCUSS) [FIXME]:
+\indent \(\ell_{2,p}\)-norm (M-FOCUSS) \citep{cotter2005}:
 \[ J = \sum_{n=1}^N \left\| c_{n\ \cdot} \right\|_2^p,\ p \in [0,1] \]
 \noindent
 The Python code for each implementation is shown below:

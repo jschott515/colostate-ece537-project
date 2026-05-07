@@ -1,0 +1,92 @@
+\section{Results and Discussion}
+
+To demonstrate functionality of the software implementation, a 1-second long sample was selected from the `s0306lre' data source.
+This waveform contains a single heartbeat pulse, and was shown to yield ideal results with the group LASSO algorithm.
+Figure \ref{fig:compression} shows the original selected waveform of the ECG on lead 2, as well as the waveform with compression applied.
+Note that a compression ratio of 10:1 is selected, which yields a compressed length of 100 samples.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{demo_lead_ii_compression.png}
+    \caption{Uncompressed v.s. Compressed ECG Lead II}
+    \label{fig:compression}
+\end{figure}
+\par
+Recovering the original signal from the compressed data and sensing matrix yielded the following results, as shown in Figures \ref{fig:lead_ii_recovered} and \ref{fig:all_recovered}. The quality of the recovered signal was measured using the percentage of root-mean-squared difference (PRD) for each lead, which was calculated as shown below \citep{daponte2021}. Table \ref{tab:demo_results} contains the PRD observed for each lead in this example.
+
+\[ PRD = \frac{\left\| x_l - \hat{x}_l \right\|_2}{\left\| x_l \right\|_2} \times 100\% \]
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.95\textwidth]{demo_lead_ii_recovered.png}
+    \caption{Source ECG v.s. Recovered Signal, Lead II}
+    \label{fig:lead_ii_recovered}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.95\textwidth]{demo_all_leads_recovered.png}
+    \caption{Source ECG v.s. Recovered Signal, All Leads}
+    \label{fig:all_recovered}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+            \hline
+            Lead & I & II & III & aVR & aVL & aVF & V1 & V2 & V3 & V4 & V5 & V6 \\
+            \hline
+            PRD & 4.62\% & 0.75\% & 0.78\% & 0.89\% & 0.99\% & 0.74\% & 1.78\% & 1.88\% & 1.26\% & 1.87\% & 1.21\% & 1.46\% \\
+            \hline
+        \end{tabular}
+    }
+    \caption{PRD per Lead, CR = 10}
+    \label{tab:demo_results}
+\end{table}
+
+As demonstrated by the figures, despite applying aggressive compression, each lead of the ECG was able to be recovered with minimal error.
+While the PRD was higher on some channels, specifically Lead I, the results were well within the expected range established by the literature \citep{mishra2012, daponte2021}.
+Most notably, the recovered P, QRS and T complexes conform exceptionally well to the original signal, maintaining any characteristics necessary for further analysis.
+\newline
+\par
+Extending analysis to the selection of algorithm for recovering the sparse coefficients, a similar methodology was applied to a set of 5 healthy control ECGs from the database.
+An arbitrary 1-second long sample was selected from each of the following 5 patient recordings: `s0311lre,' `s0299lre,' `s0308lre,' `s0462\_re' and `s0499\_re.'
+The same analysis was then applied at \(CR \in \{5, 10\}\), using both LASSO and Group LASSO to recover the original ECG.
+Table \ref{tab:compare_algs} shows the average PRD measured for each algorithm over all trials.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \multicolumn{1}{|c|}{} & 
+        \multicolumn{2}{c|}{\textbf{CR = 5}} & 
+        \multicolumn{2}{c|}{\textbf{CR = 10}} \\
+        \hline
+        Lead & LASSO & Group LASSO & LASSO & Group LASSO \\
+        \hline
+        I & 3.86\% & 1.62\% & 9.68\% & 2.37\% \\
+        II & 4.85\% & 2.00\% & 10.57\% & 2.90\% \\
+        III & 3.14\% & 1.72\% & 9.71\% & 3.50\% \\
+        aVR & 3.61\% & 1.42\% & 7.11\% & 1.87\% \\
+        aVL & 3.68\% & 1.54\% & 12.49\% & 2.69\% \\
+        aVF & 3.96\% & 1.88\% & 12.45\% & 3.79\% \\
+        V1 & 4.65\% & 1.78\% & 14.50\% & 2.67\% \\
+        V2 & 2.70\% & 1.30\% & 9.10\% & 2.56\% \\
+        V3 & 3.49\% & 1.38\% & 10.62\% & 2.46\% \\
+        V4 & 2.53\% & 1.29\% & 4.58\% & 2.34\% \\
+        V5 & 3.05\% & 1.25\% & 9.63\% & 2.32\% \\
+        V6 & 3.11\% & 1.15\% & 8.18\% & 2.04\% \\
+        \hline
+        All & 3.55\% & 1.52\% & 9.88\% & 2.62\% \\
+        \hline
+    \end{tabular}
+    \caption{Average PRD per Lead, LASSO v.s. Group LASSO}
+    \label{tab:compare_algs}
+\end{table}
+
+As expected, the Group LASSO implementation performs significantly better, especially at higher compression ratios.
+Considering that the LASSO algorithm solely optimizes for general sparsity, it is clear that this algorithm is not the best selection for problems with highly-correlated columns.
+Although similar in implementation, Group LASSO proves to be much better suited for this problem as it optimizes for row-sparse solutions.
+It should be noted, however, that these results are still lower than what can be achieved by M-FOCUSS as shown by Daponte et al. \citep{daponte2021}.
+Although originally considered for this study, M-FOCUSS is not a convex problem and thus proved to be non-trivial to implement.

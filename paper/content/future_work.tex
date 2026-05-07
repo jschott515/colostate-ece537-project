@@ -1,0 +1,12 @@
+\section{Future Work}
+While the software implementation for ECG compressed sensing proposed in this paper yielded adequate results, there is still considerable room for improvement.
+Most notably, the results achieved a lower PRD than what has been shown to be possible in the current literature \citep{daponte2021}.
+The most significant factor in this was the selection of algorithm for reconstruction.
+Due to time constraints, this implementation was limited to convex problems which could be easily solved with the cvxpy library.
+Future revisions will focus on adapting more advanced algorithms, such as M-FOCUSS or M-SBL, either by adapting the project to be compatible with existing libraries (cr-sparse) or by writing a custom implementation.
+\newline
+\par
+Furthermore, recent developments in compression of ECG signals have begun to transition away from compressed sensing in favor of deep-learning.
+With compressed sensing, the results of recovery depends highly on the assumption that the selected wavelet basis drives sparsity for the measured signal.
+As shown by the high variance in PRD when analyzing different sources, this assumption becomes brittle when generalized to a wide variety of sources.
+Deep-learning approaches attempt to mitigate by instead learning the reconstruction mapping from data \citep{erkoc2026}, which may prove to be worth investigating in future revisions.

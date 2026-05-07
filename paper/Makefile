@@ -1,4 +1,5 @@
 TEX=pdflatex
+BIB=bibtex
 BUILD=build
 
 SRC=SchottJordanFinalProject.tex
