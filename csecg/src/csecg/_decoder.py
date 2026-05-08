@@ -13,6 +13,7 @@ def prd(
     """
     return (numpy.linalg.norm(x - x_hat, 2) / numpy.linalg.norm(x, 2)) * 100
 
+
 def lasso_solver(
     compressed_data: numpy.typing.NDArray[numpy.float64],
     phi: numpy.typing.NDArray[numpy.float64],

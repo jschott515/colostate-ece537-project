@@ -80,6 +80,7 @@ def basis_matrix(length: int):
             cols.append(psi)
     # Pad with an additional column
     u = (1 / numpy.sqrt(length)) * numpy.ones(length)
+    cols.append(u)
     return numpy.column_stack(cols)
 \end{lstlisting}
 

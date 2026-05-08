@@ -1,6 +1,6 @@
+import matplotlib.pyplot
 import numpy
 import numpy.typing
-import matplotlib.pyplot
 
 
 def show_compression(

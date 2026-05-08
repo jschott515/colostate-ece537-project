@@ -25,4 +25,5 @@ def basis_matrix(length: int) -> numpy.typing.NDArray[numpy.float64]:
     # Pad with an additional column
     # https://pmc.ncbi.nlm.nih.gov/articles/PMC8587449/ Equation 12
     u = (1 / numpy.sqrt(length)) * numpy.ones(length)
+    cols.append(u)
     return numpy.column_stack(cols)

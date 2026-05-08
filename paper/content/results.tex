@@ -2,8 +2,26 @@
 
 To demonstrate functionality of the software implementation, a 1-second long sample was selected from the `s0306lre' data source.
 This waveform contains a single heartbeat pulse, and was shown to yield ideal results with the group LASSO algorithm.
+The Python code below demonstrates a high-level overview of the process that was applied to the waveform.
 Figure \ref{fig:compression} shows the original selected waveform of the ECG on lead 2, as well as the waveform with compression applied.
 Note that a compression ratio of 10:1 is selected, which yields a compressed length of 100 samples.
+
+\begin{lstlisting}[language=Python, caption=Full Compression and Recovery of 12 Lead ECG]
+    """scripts\demo.py"""
+    ecg = csecg.Ecg(channel_names, signals)
+
+    # Compress the signal!
+    cr = 10
+    phi = csecg.sensing_matrix(ecg, cr)
+    compressed_data = phi @ ecg.signals
+
+    # Compute the basis matrix and solve for the sparse coefficient matrix
+    psi = csecg.basis_matrix(ecg.length)
+    reconstructed_coefs = csecg.group_lasso_solver(compressed_data, phi, psi)
+
+    # Recover the signal!
+    recovered_signals = psi @ reconstructed_coefs
+\end{lstlisting}
 
 \begin{figure}[h]
     \centering
@@ -18,14 +36,14 @@ Recovering the original signal from the compressed data and sensing matrix yield
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.95\textwidth]{demo_lead_ii_recovered.png}
+    \includegraphics[width=1.1\textwidth]{demo_lead_ii_recovered.png}
     \caption{Source ECG v.s. Recovered Signal, Lead II}
     \label{fig:lead_ii_recovered}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.95\textwidth]{demo_all_leads_recovered.png}
+    \includegraphics[width=\textwidth]{demo_all_leads_recovered.png}
     \caption{Source ECG v.s. Recovered Signal, All Leads}
     \label{fig:all_recovered}
 \end{figure}

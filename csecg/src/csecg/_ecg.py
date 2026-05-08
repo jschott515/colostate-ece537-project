@@ -1,5 +1,6 @@
 import numpy
 
+
 class Ecg:
     def __init__(
         self,

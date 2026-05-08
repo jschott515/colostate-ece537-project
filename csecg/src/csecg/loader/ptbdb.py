@@ -1,9 +1,9 @@
-import typing
 import pathlib
+import typing
 
-import wfdb
 import numpy
 import numpy.typing
+import wfdb
 
 
 def load_12_lead_record(
